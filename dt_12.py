@@ -63,29 +63,41 @@ def potential(charges, x, y):
 print("Введите параметры для моделирования электростатического поля")
 
 log.debug("Ожидание ввода параметров")
-q1 = float(input("Значение заряда 1 (пример:  0.02 Кл): ") or 0.02)
-x1 = float(input("X-координату заряда 1   (пример: -2): ") or -20)
-y1 = float(input("Y-координату заряда 1   (пример: -1): ") or -10)
+n = int(input("Количество зарядов (пример: 3): ") or 3)
 
-q2 = float(input("Значение заряда 2 (пример: -0.01 Кл): ") or -0.01)
-x2 = float(input("X-координату заряда 2    (пример: 2): ") or 20)
-y2 = float(input("Y-координату заряда 2    (пример: 1): ") or 10)
+qs, xs, ys = [], [], []
+
+for i in range(n):
+    qs.append(float(
+        input(
+            f"Значение заряда     {i + 1:<3} (пример: {'-' * ((i + 1) % 2):1}0.02): "
+        ) or (0.02 * (1 if (i % 2) else -1))))
+    xr = (20 + 10 * max(i - 0, 0)) * (-1 if (i % 2) else 1)
+    xs.append(float(
+        input(
+            f"X-координату заряда {i + 1:<3} (пример: {xr:5}): "
+        ) or xr))
+    yr = (10 + 10 * max(i - 0, 0)) * (-1 if (i % 2) else 1)
+    ys.append(float(
+        input(
+            f"Y-координату заряда {i + 1:<3} (пример: {yr:5}): "
+        ) or yr))
+
 log.debug("Параметры введены")
 
-log.debug(f"Заряд 1: {q1} Кл, X-координата: {x1}, Y-координата: {y1}")
-log.debug(f"Заряд 2: {q2} Кл, X-координата: {x2}, Y-координата: {y2}")
+for i in range(n):
+    log.debug(f"Заряд {i + 1}: {qs[i]} Кл, X-координата: {xs[i]}, Y-координата: {ys[i]}")
 
 log.info("Начало вычислений")
 
-charges = [
-    PointCharge(q1, x1, y1),
-    PointCharge(q2, x2, y2)
-]
+charges = []
+for i in range(n):
+    charges.append(PointCharge(qs[i], xs[i], ys[i]))
 
-linspace_r = int(np.sqrt(abs(x1 - x2) ** 2 + abs(y1 - y2) ** 2 + q2 ** 2) * 1.1 + 1)
+linspace_r = int(np.sqrt(abs(max(xs) - min(xs)) ** 2 + abs(max(ys) - min(ys)) ** 2) * 1.1 + 1)
 grids = 500
-x_mid = (x2 + x1) / 2
-y_mid = (y2 + y1) / 2
+x_mid = (max(xs) + min(xs)) / 2
+y_mid = (max(ys) + min(ys)) / 2
 
 log.info("Генерация сетки координат")
 x = np.linspace(-linspace_r + x_mid, linspace_r + x_mid, grids)
@@ -109,7 +121,7 @@ plt.streamplot(X, Y, Ex, Ey, color=colors, linewidth=1, density=2.5, cmap=cm.rai
 log.info("Построение контурных линий потенциала")
 vv = np.sort(np.unique(V))
 log.debug(f"Число уникальных значений потенциала: {len(vv)} / {len(V)}")
-vn, vp = vv[vv < 0], vv[vv > 0]
+vn, vp = [0] + vv[vv < 0].tolist(), [0] + vv[vv > 0].tolist()
 
 log.debug(f"Интервалы потенциала: {vn[0]}, {vp[-1]}")
 
